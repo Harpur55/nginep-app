@@ -24,10 +24,12 @@ class BookingController extends Controller
         {
             $validator = Validator::make($request->all(), [
                 'customer_id' => 'required|exists:customer,id',
+                'number_of_guests' => 'required|integer|min:1',
                 'room_ids' => 'required|array',
                 'room_ids.*' => 'exists:room,id',
                 'check_in' => 'required|date',
                 'check_out' => 'required|date',
+                // 'total_price' => 'required|numeric',
             ]);
         
             if ($validator->fails()) {
@@ -49,23 +51,33 @@ class BookingController extends Controller
         
             try {
                 DB::beginTransaction();
+
+                $nights = Carbon::parse($request->check_in)->diffInDays(Carbon::parse($request->check_out));
+        
+
+                $rooms = RoomModel::whereIn('id', $request->room_ids)->get(['id', 'room_name', 'hotel_id']);
+                $totalPrice = $rooms->sum('room_price') * $nights;
+        
         
                 // Buat booking baru dengan tanggal yang telah diproses oleh Carbon
                 $booking = BookingModel::create([
                     'customer_id' => $request->customer_id,
                     'check_in' => $checkIn,
                     'check_out' => $checkOut,
+                    'number_of_guests' => $request->number_of_guests ?? RoomModel::whereIn('id', $request->room_ids)->sum('capacity'),
+                    // 'total_price' => $totalPrice,
                     'status' => 'pending',
                 ]);
-        
-                // Ambil data kamar berdasarkan ID
-                $rooms = RoomModel::whereIn('id', $request->room_ids)->get(['id', 'room_name', 'hotel_id']);
-        
-                // Ambil data hotel berdasarkan hotel_id dari kamar
+                if (!$booking) {
+                    throw new \Exception('Booking failed to create');
+                    
+                }
+              
+              
                 $hotelIds = $rooms->pluck('hotel_id')->unique();
                 $hotels = HotelModel::whereIn('id', $hotelIds)->get(['id', 'hotel_name']);
         
-                // Format data kamar dengan nama hotel
+                
                 $roomsData = $rooms->map(function ($room) use ($hotels) {
                     $hotelName = $hotels->firstWhere('id', $room->hotel_id)?->hotel_name ?? 'Unknown Hotel';
                     return [
@@ -85,6 +97,8 @@ class BookingController extends Controller
                         'check_in' => $booking->check_in,
                         'check_out' => $booking->check_out,
                         'status' => $booking->status,
+                        // 'total_price' => $totalPrice,
+                        'number_of_guests' => $booking->number_of_guests,
                         'rooms' => $roomsData // Tambahkan daftar kamar ke response
                     ]
                 ], 201);

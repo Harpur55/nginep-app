@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('customer')->onDelete('cascade');
             $table->dateTime('check_in');
             $table->dateTime('check_out');
+            $table-> string('number_of_guests' > 0);
+            $table->string('total_price');
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
         });
