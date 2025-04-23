@@ -16,7 +16,7 @@ class CustomerModel extends Model
     }
 
     public function booking() {
-        return $this->hasMany(BookingModel::class);
+        return $this->hasMany(BookingModel::class, 'customer_id');
     }
 
     public function room() {

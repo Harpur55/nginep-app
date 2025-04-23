@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\AuthController;
@@ -16,15 +16,20 @@ Route::prefix('auth')->group(function () {
 });
 
 // Group untuk Customer (Public & Authenticated)
-Route::prefix('customers')->group(function () {
-    Route::get('/', [CustomerController::class, 'index']); // Menampilkan semua customer
-    Route::get('/users', [UserController::class, 'getAllUsers']); // Menampilkan semua user
+Route::prefix('customers')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [CustomerController::class, 'index']); 
+    Route::get('/{id}', [CustomerController::class, 'show']);
+    Route::get('/bookings/{id}', [CustomerController::class, 'getBookingByCustomer']);
+
+
+
+    
+});
 
     // Group khusus yang membutuhkan autentikasi
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/update', [CustomerController::class, 'updateProfile']);
     });
-});
 
 Route::prefix('hotels')->group(function () {
     Route::post('/create', [HotelController::class, 'createHotel']);
@@ -42,6 +47,8 @@ Route::prefix('rooms')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/bookings', [BookingController::class, 'createBooking']);
+   
+
 });
 

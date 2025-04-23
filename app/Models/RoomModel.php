@@ -25,10 +25,11 @@ class RoomModel extends Model
     public function hotels() {
         return $this->belongsTo(HotelModel::class, 'hotel_id');
     }
+    
     public function bookings()
     {
-        return $this->belongsToMany(Booking::class, 'booking_room')
-            ->withPivot('price')
-            ->withTimestamps();
+        return $this->belongsToMany(BookingModel::class, 'booking_room', 'room_id', 'booking_id')
+                    ->withPivot('price');
     }
+    
 }

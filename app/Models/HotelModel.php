@@ -8,7 +8,10 @@ class HotelModel extends Model
 {
     //
     protected $table = 'hotels';
+    protected $primaryKey = 'id';
+
     protected $fillable = [
+    
         'hotel_name',
         'hotel_address',
         'hotel_phone',
@@ -22,9 +25,15 @@ class HotelModel extends Model
     public function booking() {
         return $this->hasMany(BookingModel::class);
     }
-    public function room() {
 
-        return $this->hasMany(RoomModel::class, 'hotel_id','id')
-                                                ->select(['id','room_name','room_type','price','capacity','room_photo','hotel_id']);            
+
+    public function rooms()
+    {
+        return $this->hasMany(RoomModel::class, 'hotel_id');
     }
+    // public function room() {
+
+    //     return $this->hasMany(RoomModel::class, 'hotels_id','id')
+    //                                             ->select(['id','room_name','room_type','price','capacity','room_photo','hotel_id']);            
+    // }
 }
